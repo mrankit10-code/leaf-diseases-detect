@@ -12,8 +12,7 @@ st.set_page_config(
     page_title="🌿 Leaf Disease Scanner",
     layout="centered",
     initial_sidebar_state="collapsed",
-    menu_items=None,
-    icon="🌿"
+    menu_items=None
 )
 
 
@@ -44,7 +43,7 @@ tab1, tab2 = st.tabs(["📸 Camera", "📁 Upload"])
 
 with tab1:
     st.markdown("### Take Photo")
-    camera_image = st.camera_input("", key="camera")
+    camera_image = st.camera_input("", key="camera", label_visibility="collapsed")
     if camera_image:
         st.image(camera_image, use_column_width=True)
         if st.button("🔍 Analyze", use_container_width=True, key="cam_btn"):
@@ -62,7 +61,7 @@ with tab1:
 
 with tab2:
     st.markdown("### Upload Image")
-    uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png"])
+    uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
     if uploaded_file:
         st.image(uploaded_file, use_column_width=True)
         if st.button("🔍 Analyze", use_container_width=True, key="upload_btn"):
