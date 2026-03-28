@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: leaf-disease-backend
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn app:app --host 0.0.0.0 --port $PORT"
+    plan: standard
+    envVars:
+      - key: GROQ_API_KEY
+        scope: run
+      - key: PYTHONUNBUFFERED
+        value: "1"
+    regions:
+      - auto
+    autoDeploy: true
+
+  - type: web
+    name: leaf-disease-frontend
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "streamlit run main.py --server.port $PORT --server.address 0.0.0.0 --client.showErrorDetails=false"
+    plan: standard
+    envVars:
+      - key: GROQ_API_KEY
+        scope: run
+      - key: BACKEND_URL
+        value: "https://leaf-disease-backend.onrender.com"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+    regions:
+      - auto
+    autoDeploy: true
