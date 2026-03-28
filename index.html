@@ -216,7 +216,7 @@
         
         <div class="btn-group">
             <button class="btn btn-primary" onclick="launchApp()">🚀 App Launcher</button>
-            <a href="http://localhost:8502" class="btn btn-secondary">🌐 Open Web App</a>
+            <a href="#" onclick="openApp(); return false;" class="btn btn-secondary">🌐 Open Web App</a>
         </div>
         
         <div class="note">
@@ -230,6 +230,24 @@
     </div>
 
     <script>
+        // Get app URL based on current domain
+        function getAppURL() {
+            const hostname = window.location.hostname;
+            const protocol = window.location.protocol;
+            
+            // If on localhost, use port 8502
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return `${protocol}//localhost:8502`;
+            }
+            
+            // On production (Render), use current domain
+            return `${protocol}//${hostname}`;
+        }
+
+        function openApp() {
+            window.location.href = getAppURL();
+        }
+
         // Register service worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
@@ -259,7 +277,7 @@
                 });
             } else {
                 // If no install prompt, just open the app
-                window.location.href = 'http://localhost:8502';
+                window.location.href = getAppURL();
             }
         }
 
