@@ -12,7 +12,8 @@ st.set_page_config(
     page_title="🌿 Leaf Disease Scanner",
     layout="centered",
     initial_sidebar_state="collapsed",
-    menu_items=None
+    menu_items=None,
+    icon="🌿"
 )
 
 

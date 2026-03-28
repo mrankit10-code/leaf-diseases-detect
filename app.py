@@ -1,7 +1,10 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse, Response, FileResponse
+from fastapi.staticfiles import StaticFiles
 import logging
+import os
+from pathlib import Path
 from utils import convert_image_to_base64_and_test
 
 logging.basicConfig(level=logging.INFO)
@@ -19,7 +22,9 @@ app.add_middleware(
 
 @app.get("/favicon.ico")
 async def favicon():
-    return Response(status_code=204)
+    # Return a simple SVG favicon
+    svg = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="#1b5e20" width="100" height="100"/><text x="50" y="70" font-size="60" font-weight="bold" fill="white" text-anchor="middle" font-family="Arial">🌿</text></svg>'
+    return Response(content=svg, media_type="image/svg+xml")
 
 @app.post('/disease-detection-file')
 async def disease_detection_file(file: UploadFile = File(...)):
