@@ -8,14 +8,23 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Get backend URL from environment variable
-# On Render: Set BACKEND_URL environment variable pointing to backend service
-# On localhost: Default to http://localhost:8000
-api_url = os.getenv('BACKEND_URL', 'http://localhost:8000').strip()
+# Get backend URL - handles both Render and localhost
+api_url = os.getenv('BACKEND_URL', '').strip()
 
-# Debug: Show which URL we're using (remove in production)
+# If no BACKEND_URL is set, determine based on environment
+if not api_url:
+    # Check if running on Render (has RENDER environment variable)
+    if os.getenv('RENDER'):
+        # On Render, try to construct the backend URL from the frontend service name
+        # Render services are usually: servicename.onrender.com
+        api_url = 'https://leaf-disease-backend.onrender.com'
+    else:
+        # Local development
+        api_url = 'http://localhost:8000'
+
+# Ensure it has a protocol
 if not api_url.startswith('http'):
-    api_url = 'http://' + api_url
+    api_url = 'https://' + api_url if os.getenv('RENDER') else 'http://' + api_url
 
 st.set_page_config(
     page_title="🌿 Leaf Disease Scanner",
