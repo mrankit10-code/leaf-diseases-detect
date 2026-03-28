@@ -2,7 +2,7 @@
   "name": "🌿 Leaf Disease Scanner",
   "short_name": "Leaf Scanner",
   "description": "Detect leaf diseases instantly with AI + Camera",
-  "start_url": "http://localhost:8502",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
