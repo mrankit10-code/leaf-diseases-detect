@@ -1,7 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response, FileResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse, FileResponse
 import logging
 import os
 from pathlib import Path
@@ -22,9 +21,15 @@ app.add_middleware(
 
 @app.get("/favicon.ico")
 async def favicon():
-    # Return a simple SVG favicon with leaf circle
-    svg = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><style>.leaf{fill:#1b5e20;}</style></defs><rect class="leaf" width="100" height="100"/><circle cx="50" cy="50" r="35" fill="#4caf50"/><path d="M50,20 Q60,35 55,50 Q70,45 75,60 Q60,70 50,75 Q40,70 25,60 Q30,45 40,50 Q35,35 50,20" fill="#1b5e20"/></svg>'
-    return Response(content=svg, media_type="image/svg+xml")
+    # Serve favicon.png as favicon.ico
+    favicon_path = Path(__file__).parent / "favicon.png"
+    if favicon_path.exists():
+        return FileResponse(favicon_path, media_type="image/x-icon")
+    # Fallback SVG if file not found
+    return FileResponse(
+        Path(__file__).parent / "favicon.png",
+        media_type="image/png"
+    )
 
 @app.post('/disease-detection-file')
 async def disease_detection_file(file: UploadFile = File(...)):
