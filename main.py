@@ -8,6 +8,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Detect backend URL
+# On Render: use backend service URL
+# On localhost: use localhost:8000
+hostname = os.getenv('HOSTNAME', '')
+if 'render.com' in hostname or os.getenv('RENDER'):
+    # On Render, use the backend service URL
+    api_url = os.getenv('BACKEND_URL', 'https://leaf-diseases-detect-backend.onrender.com')
+else:
+    # On localhost for development
+    api_url = os.getenv('BACKEND_URL', 'http://localhost:8000')
+
 st.set_page_config(
     page_title="🌿 Leaf Disease Scanner",
     layout="centered",
