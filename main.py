@@ -3,6 +3,10 @@ import streamlit as st
 import requests
 from datetime import datetime
 import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 st.set_page_config(
     page_title="🌿 Leaf Disease Scanner",
@@ -25,7 +29,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-api_url = "http://localhost:8000"
+api_url = os.getenv('BACKEND_URL', 'http://localhost:8000')
 
 if 'analysis_result' not in st.session_state:
     st.session_state.analysis_result = None
