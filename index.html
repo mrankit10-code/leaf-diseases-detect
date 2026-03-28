@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Leaf Disease Detection - Detect leaf diseases instantly with AI">
+    <meta name="theme-color" content="#1976D2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Leaf Scanner">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%231976D2' width='192' height='192'/><text x='96' y='120' font-size='120' font-weight='bold' fill='white' text-anchor='middle'>🌿</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%231976D2' width='180' height='180' rx='40'/><text x='90' y='135' font-size='100' font-weight='bold' fill='white' text-anchor='middle'>🌿</text></svg>">
+    <title>🌿 Leaf Disease Scanner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f7f9fa 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #1565c0;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #616161;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        
+        .instructions {
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        .instructions h2 {
+            color: #1976d2;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+        }
+        
+        .instructions li {
+            color: #424242;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+        }
+        
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(25, 118, 210, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 2px solid #1976d2;
+        }
+        
+        .btn-secondary:hover {
+            background: #bbdefb;
+        }
+        
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            text-align: left;
+            font-size: 13px;
+            color: #856404;
+        }
+        
+        .note strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .feature {
+            background: #f0f7ff;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #1976d2;
+        }
+        
+        .feature span {
+            font-size: 20px;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 15px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .icon {
+                font-size: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🌿</div>
+        <h1>Leaf Disease Scanner</h1>
+        <p class="subtitle">Detect leaf diseases instantly with AI</p>
+        
+        <div class="features">
+            <div class="feature">
+                <span>📸</span>
+                Camera Capture
+            </div>
+            <div class="feature">
+                <span>🤖</span>
+                AI Analysis
+            </div>
+            <div class="feature">
+                <span>💊</span>
+                Treatment Tips
+            </div>
+            <div class="feature">
+                <span>⚡</span>
+                Instant Results
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h2>🚀 Getting Started</h2>
+            <ol>
+                <li><strong>📌 Install as App (Easiest):</strong>
+                    <ul style="margin-top: 5px; margin-left: 20px; list-style: none;">
+                        <li>✓ Click "<strong>App Launcher</strong>" button below</li>
+                        <li>✓ Then click "<strong>Install App</strong>" in your browser menu</li>
+                        <li>✓ App will appear on your home screen!</li>
+                    </ul>
+                </li>
+                <li style="margin-top: 10px;"><strong>🔗 Or Open Directly:</strong>
+                    <ul style="margin-top: 5px; margin-left: 20px; list-style: none;">
+                        <li>✓ Click "Open Web App" to use immediately</li>
+                        <li>✓ No installation needed</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="launchApp()">🚀 App Launcher</button>
+            <a href="http://localhost:8502" class="btn btn-secondary">🌐 Open Web App</a>
+        </div>
+        
+        <div class="note">
+            <strong>💡 Browser Tips:</strong>
+            <div>
+                <strong>Chrome/Edge:</strong> Menu (⋮) → "Install app" or "Add to home screen"<br>
+                <strong>Safari (iOS):</strong> Share (↗) → "Add to Home Screen"<br>
+                <strong>Firefox:</strong> Menu (≡) → "Install"
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('✓ Service Worker registered'))
+                .catch(err => console.log('Service Worker registration failed:', err));
+        }
+
+        // Install prompt
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('Install prompt ready');
+        });
+
+        function launchApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('✓ App installed');
+                    } else {
+                        console.log('Installation dismissed');
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                // If no install prompt, just open the app
+                window.location.href = 'http://localhost:8502';
+            }
+        }
+
+        // Handle app installed event
+        window.addEventListener('appinstalled', () => {
+            console.log('✓ App successfully installed!');
+            alert('✅ App installed successfully! You can now find it on your home screen.');
+        });
+    </script>
+</body>
+</html>

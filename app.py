@@ -1,50 +1,52 @@
-from fastapi import FastAPI, Request, HTTPException, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
-import os
-from utils import convert_image_to_base64_and_test, test_with_base64_data
+from utils import convert_image_to_base64_and_test
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Leaf Disease Detection API", version="1.0.0")
+app = FastAPI(title="Leaf Disease Detection API", version="2.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post('/disease-detection-file')
 async def disease_detection_file(file: UploadFile = File(...)):
-    """
-    Endpoint to detect diseases in leaf images using direct image file upload.
-    Accepts multipart/form-data with an image file.
-    """
     try:
-        logger.info("Received image file for disease detection")
+        logger.info(f"Received: {file.filename}")
         
-        # Read uploaded file into memory
+        if file.content_type not in ['image/jpeg', 'image/jpg', 'image/png']:
+            raise HTTPException(status_code=400, detail="Invalid file type")
+        
         contents = await file.read()
         
-    # Process file directly from memory
+        if len(contents) > 5 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="File too large")
+        
         result = convert_image_to_base64_and_test(contents)
         
-    # No cleanup needed since file is not saved locally
-        
         if result is None:
-            raise HTTPException(status_code=500, detail="Failed to process image file")
-        logger.info("Disease detection from file completed successfully")
+            raise HTTPException(status_code=500, detail="Processing failed")
+        
         return JSONResponse(content=result)
+        
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error in disease detection (file): {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
-
+        logger.error(f"Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
 async def root():
-    """Root endpoint providing API information"""
-    return {
-        "message": "Leaf Disease Detection API",
-        "version": "1.0.0",
-        "endpoints": {
-            "disease_detection_file": "/disease-detection-file (POST, file upload)"
-        }
-    }
+    return {"message": "API Online", "version": "2.0.0"}
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy"}

@@ -1,194 +1,112 @@
 
-
 import streamlit as st
 import requests
+from datetime import datetime
+import json
 
-import streamlit as st
-import requests
-
-# Set Streamlit theme to light and wide mode
 st.set_page_config(
-    page_title="Leaf Disease Detection",
-    layout="wide",
-    initial_sidebar_state="collapsed"
+    page_title="🌿 Leaf Disease Scanner",
+    layout="centered",
+    initial_sidebar_state="collapsed",
+    menu_items=None
 )
 
 
-# Enhanced modern CSS
 st.markdown("""
     <style>
-    .stApp {
-        background: linear-gradient(135deg, #e3f2fd 0%, #f7f9fa 100%);
-    }
-    .result-card {
-        background: rgba(255,255,255,0.95);
-        border-radius: 18px;
-        box-shadow: 0 4px 24px rgba(44,62,80,0.10);
-        padding: 2.5em 2em;
-        margin-top: 1.5em;
-        margin-bottom: 1.5em;
-        transition: box-shadow 0.3s;
-    }
-    .result-card:hover {
-        box-shadow: 0 8px 32px rgba(44,62,80,0.18);
-    }
-    .disease-title {
-        color: #1b5e20;
-        font-size: 2.2em;
-        font-weight: 700;
-        margin-bottom: 0.5em;
-        letter-spacing: 1px;
-        text-shadow: 0 2px 8px #e0e0e0;
-    }
-    .section-title {
-        color: #1976d2;
-        font-size: 1.25em;
-        margin-top: 1.2em;
-        margin-bottom: 0.5em;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-    }
-    .timestamp {
-        color: #616161;
-        font-size: 0.95em;
-        margin-top: 1.2em;
-        text-align: right;
-    }
-    .info-badge {
-        display: inline-block;
-        background: #e3f2fd;
-        color: #1976d2;
-        border-radius: 8px;
-        padding: 0.3em 0.8em;
-        font-size: 1em;
-        margin-right: 0.5em;
-        margin-bottom: 0.3em;
-    }
-    .symptom-list, .cause-list, .treatment-list {
-        margin-left: 1em;
-        margin-bottom: 0.5em;
-    }
+    .stApp { background: linear-gradient(135deg, #e3f2fd 0%, #f7f9fa 100%); }
+    main { padding: 1rem !important; }
+    .stButton > button { width: 100%; font-size: 1.1em; padding: 1em 0; border-radius: 12px; font-weight: 600; }
+    .result-card { background: rgba(255,255,255,0.95); border-radius: 16px; padding: 1.5em; border-left: 4px solid #1b5e20; }
+    .disease-title { color: #1b5e20; font-size: 1.8em; font-weight: 700; }
+    .severity-mild { background: #c8e6c9; color: #1b5e20; }
+    .severity-moderate { background: #fff9c4; color: #f57f17; }
+    .severity-severe { background: #ffccbc; color: #d84315; }
     </style>
 """, unsafe_allow_html=True)
 
+api_url = "http://localhost:8000"
 
-st.markdown("""
-    <div style='text-align: center; margin-top: 1em;'>
-        <span style='font-size:2.5em;'>🌿</span>
-        <h1 style='color: #1565c0; margin-bottom:0;'>Leaf Disease Detection</h1>
-        <p style='color: #616161; font-size:1.15em;'>Upload a leaf image to detect diseases and get expert recommendations.</p>
-    </div>
-""", unsafe_allow_html=True)
+if 'analysis_result' not in st.session_state:
+    st.session_state.analysis_result = None
 
-api_url = "http://leaf-diseases-detect.vercel.app"
+st.markdown("""<div style="text-align: center;">
+    <h1 style="color: #1565c0;">🌿 Leaf Disease Scanner</h1>
+    <p style="color: #616161;">Detect diseases with AI + Camera</p>
+</div>""", unsafe_allow_html=True)
 
-col1, col2 = st.columns([1, 2])
-with col1:
-    uploaded_file = st.file_uploader(
-        "Upload Leaf Image", type=["jpg", "jpeg", "png"])
-    if uploaded_file is not None:
-        st.image(uploaded_file, caption="Preview")
+tab1, tab2 = st.tabs(["📸 Camera", "📁 Upload"])
 
-with col2:
-    if uploaded_file is not None:
-        if st.button("🔍 Detect Disease", use_container_width=True):
-            with st.spinner("Analyzing image and contacting API..."):
+with tab1:
+    st.markdown("### Take Photo")
+    camera_image = st.camera_input("", key="camera")
+    if camera_image:
+        st.image(camera_image, use_column_width=True)
+        if st.button("🔍 Analyze", use_container_width=True, key="cam_btn"):
+            with st.spinner("🔬 Analyzing..."):
                 try:
-                    files = {
-                        "file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
-                    response = requests.post(
-                        f"{api_url}/disease-detection-file", files=files)
+                    image_bytes = camera_image.getvalue()
+                    files = {'file': ('image.jpg', image_bytes, 'image/jpeg')}
+                    response = requests.post(f"{api_url}/disease-detection-file", files=files, timeout=30)
                     if response.status_code == 200:
-                        result = response.json()
-
-                        # Check if it's an invalid image
-                        if result.get("disease_type") == "invalid_image":
-                            st.markdown("<div class='result-card'>",
-                                        unsafe_allow_html=True)
-                            st.markdown(
-                                "<div class='disease-title'>⚠️ Invalid Image</div>", unsafe_allow_html=True)
-                            st.markdown(
-                                "<div style='color: #ff5722; font-size: 1.1em; margin-bottom: 1em;'>Please upload a clear image of a plant leaf for accurate disease detection.</div>", unsafe_allow_html=True)
-
-                            # Show the symptoms (which contain the error message)
-                            if result.get("symptoms"):
-                                st.markdown(
-                                    "<div class='section-title'>Issue</div>", unsafe_allow_html=True)
-                                st.markdown("<ul class='symptom-list'>",
-                                            unsafe_allow_html=True)
-                                for symptom in result.get("symptoms", []):
-                                    st.markdown(
-                                        f"<li>{symptom}</li>", unsafe_allow_html=True)
-                                st.markdown("</ul>", unsafe_allow_html=True)
-
-                            # Show treatment recommendations
-                            if result.get("treatment"):
-                                st.markdown(
-                                    "<div class='section-title'>What to do</div>", unsafe_allow_html=True)
-                                st.markdown("<ul class='treatment-list'>",
-                                            unsafe_allow_html=True)
-                                for treat in result.get("treatment", []):
-                                    st.markdown(
-                                        f"<li>{treat}</li>", unsafe_allow_html=True)
-                                st.markdown("</ul>", unsafe_allow_html=True)
-
-                            st.markdown("</div>", unsafe_allow_html=True)
-
-                        elif result.get("disease_detected"):
-                            st.markdown("<div class='result-card'>",
-                                        unsafe_allow_html=True)
-                            st.markdown(
-                                f"<div class='disease-title'>🦠 {result.get('disease_name', 'N/A')}</div>", unsafe_allow_html=True)
-                            st.markdown(
-                                f"<span class='info-badge'>Type: {result.get('disease_type', 'N/A')}</span>", unsafe_allow_html=True)
-                            st.markdown(
-                                f"<span class='info-badge'>Severity: {result.get('severity', 'N/A')}</span>", unsafe_allow_html=True)
-                            st.markdown(
-                                f"<span class='info-badge'>Confidence: {result.get('confidence', 'N/A')}%</span>", unsafe_allow_html=True)
-                            st.markdown(
-                                "<div class='section-title'>Symptoms</div>", unsafe_allow_html=True)
-                            st.markdown("<ul class='symptom-list'>",
-                                        unsafe_allow_html=True)
-                            for symptom in result.get("symptoms", []):
-                                st.markdown(
-                                    f"<li>{symptom}</li>", unsafe_allow_html=True)
-                            st.markdown("</ul>", unsafe_allow_html=True)
-                            st.markdown(
-                                "<div class='section-title'>Possible Causes</div>", unsafe_allow_html=True)
-                            st.markdown("<ul class='cause-list'>",
-                                        unsafe_allow_html=True)
-                            for cause in result.get("possible_causes", []):
-                                st.markdown(
-                                    f"<li>{cause}</li>", unsafe_allow_html=True)
-                            st.markdown("</ul>", unsafe_allow_html=True)
-                            st.markdown(
-                                "<div class='section-title'>Treatment</div>", unsafe_allow_html=True)
-                            st.markdown("<ul class='treatment-list'>",
-                                        unsafe_allow_html=True)
-                            for treat in result.get("treatment", []):
-                                st.markdown(
-                                    f"<li>{treat}</li>", unsafe_allow_html=True)
-                            st.markdown("</ul>", unsafe_allow_html=True)
-                            st.markdown(
-                                f"<div class='timestamp'>🕒 {result.get('analysis_timestamp', 'N/A')}</div>", unsafe_allow_html=True)
-                            st.markdown("</div>", unsafe_allow_html=True)
-                        else:
-                            # Healthy leaf case
-                            st.markdown("<div class='result-card'>",
-                                        unsafe_allow_html=True)
-                            st.markdown(
-                                "<div class='disease-title'>✅ Healthy Leaf</div>", unsafe_allow_html=True)
-                            st.markdown(
-                                "<div style='color: #4caf50; font-size: 1.1em; margin-bottom: 1em;'>No disease detected in this leaf. The plant appears to be healthy!</div>", unsafe_allow_html=True)
-                            st.markdown(
-                                f"<span class='info-badge'>Status: {result.get('disease_type', 'healthy')}</span>", unsafe_allow_html=True)
-                            st.markdown(
-                                f"<span class='info-badge'>Confidence: {result.get('confidence', 'N/A')}%</span>", unsafe_allow_html=True)
-                            st.markdown(
-                                f"<div class='timestamp'>🕒 {result.get('analysis_timestamp', 'N/A')}</div>", unsafe_allow_html=True)
-                            st.markdown("</div>", unsafe_allow_html=True)
+                        st.session_state.analysis_result = response.json()
                     else:
-                        st.error(f"API Error: {response.status_code}")
-                        st.write(response.text)
+                        st.error("Analysis failed")
                 except Exception as e:
-                    st.error(f"Error: {str(e)}")
+                    st.error(f"Error: {e}")
+
+with tab2:
+    st.markdown("### Upload Image")
+    uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png"])
+    if uploaded_file:
+        st.image(uploaded_file, use_column_width=True)
+        if st.button("🔍 Analyze", use_container_width=True, key="upload_btn"):
+            with st.spinner("🔬 Analyzing..."):
+                try:
+                    image_bytes = uploaded_file.getvalue()
+                    files = {'file': ('image.jpg', image_bytes, 'image/jpeg')}
+                    response = requests.post(f"{api_url}/disease-detection-file", files=files, timeout=30)
+                    if response.status_code == 200:
+                        st.session_state.analysis_result = response.json()
+                    else:
+                        st.error("Analysis failed")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+
+if st.session_state.analysis_result:
+    result = st.session_state.analysis_result
+    st.divider()
+    st.markdown("### 📊 Results")
+    
+    disease_type = result.get('disease_type', 'unknown')
+    disease_name = result.get('disease_name', 'Unknown')
+    confidence = result.get('confidence', 0)
+    severity = result.get('severity', 'unknown')
+    
+    if result.get('disease_detected') and disease_type != 'invalid_image':
+        st.markdown(f"""
+            <div class="result-card">
+                <div class="disease-title">🚨 {disease_name}</div>
+                <strong>Confidence:</strong> {confidence}%<br>
+                <strong>Severity:</strong> {severity.title()}
+            </div>
+        """, unsafe_allow_html=True)
+        
+        if result.get('symptoms'):
+            st.markdown("**🔍 Symptoms:**")
+            for s in result['symptoms']:
+                st.write(f"• {s}")
+        
+        if result.get('treatment'):
+            st.markdown("**💊 Treatment:**")
+            for t in result['treatment']:
+                st.write(f"✓ {t}")
+    else:
+        st.success("✅ Leaf is Healthy!")
+    
+    st.divider()
+    if st.button("👈 Back", use_container_width=True):
+        st.session_state.analysis_result = None
+        st.rerun()
+
+st.caption("🌱 Powered by Groq AI")
