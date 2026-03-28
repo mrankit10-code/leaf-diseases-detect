@@ -21,15 +21,11 @@ app.add_middleware(
 
 @app.get("/favicon.ico")
 async def favicon():
-    # Serve favicon.png as favicon.ico
-    favicon_path = Path(__file__).parent / "favicon.png"
+    # Serve favicon.ico file
+    favicon_path = Path(__file__).parent / "favicon.ico"
     if favicon_path.exists():
         return FileResponse(favicon_path, media_type="image/x-icon")
-    # Fallback SVG if file not found
-    return FileResponse(
-        Path(__file__).parent / "favicon.png",
-        media_type="image/png"
-    )
+    return Response(status_code=204)
 
 @app.post('/disease-detection-file')
 async def disease_detection_file(file: UploadFile = File(...)):
