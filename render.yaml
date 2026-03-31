@@ -13,12 +13,16 @@ services:
     regions:
       - auto
     autoDeploy: true
+    healthCheckPath: /health
+    healthCheckInterval: 30
+    healthCheckTimeout: 10
+    maxShutdownDelay: 30
 
   - type: web
     name: leaf-disease-frontend
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "streamlit run main.py --server.port $PORT --server.address 0.0.0.0 --client.showErrorDetails=false"
+    startCommand: "streamlit run main.py --server.port $PORT --server.address 0.0.0.0 --client.showErrorDetails=false --logger.level=error"
     plan: standard
     envVars:
       - key: GROQ_API_KEY
@@ -30,3 +34,7 @@ services:
     regions:
       - auto
     autoDeploy: true
+    healthCheckPath: /healthz
+    healthCheckInterval: 30
+    healthCheckTimeout: 10
+    maxShutdownDelay: 30

@@ -5,6 +5,7 @@ from datetime import datetime
 import json
 import os
 from dotenv import load_dotenv
+import time
 
 load_dotenv()
 
@@ -25,6 +26,30 @@ if not api_url:
 # Ensure it has a protocol
 if not api_url.startswith('http'):
     api_url = 'https://' + api_url if os.getenv('RENDER') else 'http://' + api_url
+
+# Timeout configuration (increased for Render)
+REQUEST_TIMEOUT = 120  # 120 seconds for model inference
+MAX_RETRIES = 3
+
+def send_request_with_retry(url, files, timeout=REQUEST_TIMEOUT):
+    """Send request with exponential backoff retry logic"""
+    for attempt in range(MAX_RETRIES):
+        try:
+            response = requests.post(url, files=files, timeout=timeout)
+            return response, None
+        except requests.exceptions.Timeout:
+            if attempt < MAX_RETRIES - 1:
+                wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                st.warning(f"⏳ Timeout on attempt {attempt + 1}. Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+            else:
+                return None, "Request timed out after multiple retries. The AI model may be slow to respond. Please try again in a moment."
+        except requests.exceptions.ConnectionError as e:
+            return None, f"❌ Cannot connect to backend: {str(e)}"
+        except Exception as e:
+            return None, f"❌ Request failed: {str(e)}"
+    
+    return None, "❌ Request failed after retries"
 
 st.set_page_config(
     page_title="🌿 Leaf Disease Scanner",
@@ -63,17 +88,20 @@ with tab1:
     if camera_image:
         st.image(camera_image, use_column_width=True)
         if st.button("🔍 Analyze", use_container_width=True, key="cam_btn"):
-            with st.spinner("🔬 Analyzing..."):
+            with st.spinner("🔬 Analyzing leaf... (this may take up to 2 minutes)"):
                 try:
                     image_bytes = camera_image.getvalue()
                     files = {'file': ('image.jpg', image_bytes, 'image/jpeg')}
-                    response = requests.post(f"{api_url}/disease-detection-file", files=files, timeout=30)
-                    if response.status_code == 200:
+                    response, error = send_request_with_retry(f"{api_url}/disease-detection-file", files)
+                    
+                    if error:
+                        st.error(error)
+                    elif response and response.status_code == 200:
                         st.session_state.analysis_result = response.json()
                     else:
-                        st.error("Analysis failed")
+                        st.error(f"❌ Analysis failed (Status: {response.status_code if response else 'Unknown'})")
                 except Exception as e:
-                    st.error(f"Error: {e}")
+                    st.error(f"❌ Error: {e}")
 
 with tab2:
     st.markdown("### Upload Image")
@@ -81,17 +109,20 @@ with tab2:
     if uploaded_file:
         st.image(uploaded_file, use_column_width=True)
         if st.button("🔍 Analyze", use_container_width=True, key="upload_btn"):
-            with st.spinner("🔬 Analyzing..."):
+            with st.spinner("🔬 Analyzing leaf... (this may take up to 2 minutes)"):
                 try:
                     image_bytes = uploaded_file.getvalue()
                     files = {'file': ('image.jpg', image_bytes, 'image/jpeg')}
-                    response = requests.post(f"{api_url}/disease-detection-file", files=files, timeout=30)
-                    if response.status_code == 200:
+                    response, error = send_request_with_retry(f"{api_url}/disease-detection-file", files)
+                    
+                    if error:
+                        st.error(error)
+                    elif response and response.status_code == 200:
                         st.session_state.analysis_result = response.json()
                     else:
-                        st.error("Analysis failed")
+                        st.error(f"❌ Analysis failed (Status: {response.status_code if response else 'Unknown'})")
                 except Exception as e:
-                    st.error(f"Error: {e}")
+                    st.error(f"❌ Error: {e}")
 
 if st.session_state.analysis_result:
     result = st.session_state.analysis_result
